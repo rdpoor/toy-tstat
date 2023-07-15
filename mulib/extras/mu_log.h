@@ -97,6 +97,11 @@ mu_log_level_t mu_log_get_reporting_level(void);
 void mu_log_set_logging_function(mu_log_logging_fn logging_fn);
 
 /**
+ * @brief Get the user-supplied logging function
+ */
+mu_log_logging_fn mu_log_get_logging_function(void);
+
+/**
  * @brief Return the current logging level as a string.
  */
 const char *mu_log_level_name(mu_log_level_t level);
