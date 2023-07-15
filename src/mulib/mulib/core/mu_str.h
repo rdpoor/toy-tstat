@@ -270,6 +270,21 @@ mu_str_t *mu_str_trim(mu_str_t *str, mu_str_predicate_t predicate, void *arg);
  */
 bool mu_str_to_cstr(mu_str_t *str, char *buf, size_t capacity);
 
+/**
+ * A collection of simple parsing functions.  Functions assume no leading,
+ * trailing or intermediate whitespace.
+ */
+int mu_str_parse_int(mu_str_t *str);
+unsigned int mu_str_parse_unsigned_int(mu_str_t *str);
+int8_t mu_str_parse_int8(mu_str_t *str);
+uint8_t mu_str_parse_uint8(mu_str_t *str);
+int16_t mu_str_parse_int16(mu_str_t *str);
+uint16_t mu_str_parse_uint16(mu_str_t *str);
+int32_t mu_str_parse_int32(mu_str_t *str);
+uint32_t mu_str_parse_uint32(mu_str_t *str);
+int64_t mu_str_parse_int64(mu_str_t *str);
+uint64_t mu_str_parse_uint64(mu_str_t *str);
+
 // *****************************************************************************
 // End of file
 
