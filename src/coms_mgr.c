@@ -25,11 +25,17 @@
  *
  */
 
+/**
+ * This implementation of coms_mgr provides an interface to the Microchip
+ * MPLAB.X / Harmony3 serial ring buffer library object.
+ */
+
 // *****************************************************************************
 // Includes
 
 #include "coms_mgr.h"
 
+#include "definitions.h"
 #include "mulib/core/mu_task.h"
 #include "mulib/extras/mu_log.h"
 #include "task_info.h"
@@ -107,32 +113,21 @@ void coms_mgr_init(void) {
 }
 
 bool coms_mgr_send(const char *msg, size_t msg_len) {
-    printf("%.*s\0", msg_len, msg);
-    return true;
+    return SERCOM3_USART_Write(msg, msg_len) = msg_len;
 }
 
 bool coms_mgr_recv(char *buf, size_t capacity, mu_task_t *on_completion) {
     coms_mgr_t *self = coms_mgr();
     mu_task_t *task = coms_mgr_task();
 
-    MU_LOG_DEBUG("coms_mgr: fatch");
+    MU_LOG_DEBUG("coms_mgr: recv");
     self->buf = buf;
     self->capacity = capacity;
     self->on_completion = on_completion;
 
+    self->bytes_received = 0;
     self->had_error = false;
     mu_task_yield(task, COMS_MGR_STATE_START_RQST);
-}
-
-bool coms_mgr_push(model_t *model) {
-    char buf[MAX_LEN];
-    // serialize and send the model.
-    if (model_dump_json(model, buf, sizeof(buf)) == NULL) {
-        return false;
-    } else {
-        coms_mgr_send(buf, strlen(buf));
-        return true;
-    }
 }
 
 bool coms_mgr_had_error(void) { return coms_mgr()->had_error; }
@@ -147,33 +142,54 @@ static void coms_mgr_fn(mu_task_t *task, void *arg) {
     switch (mu_task_get_state(task)) {
 
     case COMS_MGR_STATE_IDLE: {
-        // wait here for a call to coms_mgr_fatch()
+        // wait here for a call to coms_mgr_recv()
     } break;
 
-    case COMS_MGR_STATE_START_PULL: {
-        // request model state
-        coms_mgr_send(MODEL_REQUEST, sizeof(MODEL_REQUEST));
-
-        if (!coms_mgr_recv(self->rx_buf, sizeof(self->rx_buf))) {
-            MU_LOG_ERROR("coms_mgr: failed to start receiving message");
-            endgame(true);
-        } else {
-            mu_task_wait(task, COMS_MGR_STATE_AWAIT_RQST);
-        }
+    case COMS_MGR_STATE_START_RQST: {
+        // task will be advanced by coms_rx_cb()
+        mu_task_wait(task, COMS_MGR_STATE_AWAIT_RQST);
     } break;
 
-    case COMS_MGR_STATE_AWAIT_PULL: {
-        // here after receiving serial response
-        if (coms_mgr_had_error()) {
-            MU_LOG_ERROR("coms_mgr: failed to receive message");
+    case COMS_MGR_STATE_AWAIT_RQST: {
+        // here after after coms_rx_bc interrupt triggers
+        switch (self->event) {
+
+        case SERCOM_USART_EVENT_READ_THRESHOLD_REACHED:
+        case SERCOM_USART_EVENT_READ_BUFFER_FULL: {
+            /* bytes are available in the receive ring buffer */
+            char ch;
+
+            while ((self->bytes_received < self->capacity) &&
+                   ((SERCOM3_USART_Read(&ch, 1) == 1))) {
+                // quit on null terminator or full buffer
+                self->buf[self->bytes_received++] = ch;
+                if (ch == '\0') {
+                    break;
+                }
+            }
+            // If null terminator or buffer full, call continuation.  Else
+            // wait for more characters.
+            if ((ch == '\0') || (self->bytes_received == self->capacity)) {
+                endgame(false);
+            } else {
+                mu_task_wait(task, COMS_MGR_STATE_AWAIT_RQST);
+            }
+        } break;
+
+        case SERCOM_USART_EVENT_READ_ERROR: {
+            /* USART error. Application must call the SERCOMx_USART_ErrorGet API to get the type of error and clear the error. */
             endgame(true);
-        } else if (model_load_json(self->model, self->rx_buf) == NULL) {
-            MU_LOG_ERROR("coms_mgr: failed parse model JSON");
-            endgame(true);
-        } else {
-            MU_LOG_DEBUG("coms_mgr: success");
-            endame(false);
-        }
+        } break;
+
+        case SERCOM_USART_EVENT_WRITE_THRESHOLD_REACHED: {
+            /* Threshold number of free space is available in the transmit ring buffer */
+        } break;
+
+        case SERCOM_USART_EVENT_BREAK_SIGNAL_DETECTED: {
+            /* Receive break signal is detected */
+        } break;
+
+        }  // switch
     } break;
 
     } // switch
@@ -186,6 +202,15 @@ static void endgame(bool had_error) {
     self->had_error = had_error;
     task_info(task, COMS_MGR_STATE_IDLE, had_error);
     mu_task_transfer(task, COMS_MGR_STATE_IDLE, self->on_completion);
+}
+
+
+static coms_rx_cb(SERCOM_USART_EVENT event, uintptr_t context) {
+    coms_mgr_t *self = (coms_mgr_t *)context;
+    mu_task_t *task = &self->task;
+    self->event = event;
+
+    mu_task_sched_from_isr(task);
 }
 
 // *****************************************************************************
