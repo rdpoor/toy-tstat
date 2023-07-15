@@ -46,9 +46,9 @@
 // *****************************************************************************
 // Private types and definitions
 
-#define COMS_MGR_STATES(M)                                                  \
-    M(COMS_MGR_STATE_IDLE)                                                  \
-    M(COMS_MGR_STATE_START_RQST)                                            \
+#define COMS_MGR_STATES(M)                                                     \
+    M(COMS_MGR_STATE_IDLE)                                                     \
+    M(COMS_MGR_STATE_START_RQST)                                               \
     M(COMS_MGR_STATE_AWAIT_RQST)
 
 #define EXPAND_STATE_ENUMS(_name) _name,
@@ -177,19 +177,27 @@ static void coms_mgr_fn(mu_task_t *task, void *arg) {
         } break;
 
         case SERCOM_USART_EVENT_READ_ERROR: {
-            /* USART error. Application must call the SERCOMx_USART_ErrorGet API to get the type of error and clear the error. */
+            /* USART error. Application must call the SERCOMx_USART_ErrorGet API
+             * to get the type of error and clear the error. */
             endgame(true);
         } break;
 
         case SERCOM_USART_EVENT_WRITE_THRESHOLD_REACHED: {
-            /* Threshold number of free space is available in the transmit ring buffer */
+            /* Threshold number of free space is available in the transmit ring
+             * buffer */
+            MU_LOG_WARN(
+                "coms_mgr: Got SERCOM_USART_EVENT_WRITE_THRESHOLD_REACHED?");
+            endgame(false);
         } break;
 
         case SERCOM_USART_EVENT_BREAK_SIGNAL_DETECTED: {
             /* Receive break signal is detected */
+            MU_LOG_WARN(
+                "coms_mgr: Got SERCOM_USART_EVENT_BREAK_SIGNAL_DETECTED?");
+            endgame(false);
         } break;
 
-        }  // switch
+        } // switch
     } break;
 
     } // switch
@@ -203,7 +211,6 @@ static void endgame(bool had_error) {
     task_info(task, COMS_MGR_STATE_IDLE, had_error);
     mu_task_transfer(task, COMS_MGR_STATE_IDLE, self->on_completion);
 }
-
 
 static coms_rx_cb(SERCOM_USART_EVENT event, uintptr_t context) {
     coms_mgr_t *self = (coms_mgr_t *)context;
