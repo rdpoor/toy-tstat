@@ -10,15 +10,22 @@ sockets provide the transport channels among the modules and broker.
 ```
            +----------+----+   +----------+   +----+----------+
            |  TSTAT   |ser/|   |          |   |ser/|  TSTAT   |
-hardware   |  LOGIC   |sock|<=>|          |<=>|sock|  MODEL   |
+hardware   |  LOGIC   |sock|<->|          |<->|sock|  MODEL   |
            |          |    |   |          |   |    |          |
            +----------+----+   |          |   +----+----------+
                                |  BROKER  |
            +----------+        |          |        +----------+
            |  TSTAT   |        |          |        |  TSTAT   |
-emulated   |  LOGIC   |<======>|          |<======>|  MODEL   |
+emulated   |  LOGIC   |<------>|          |<------>|  MODEL   |
            |          |        |          |        |          |
            +----------+        +----------+        +----------+
+                                    ^
+                                    |
+                                    v
+                               +----------+
+                               |   TEST   |
+                               | HARNESS  |
+                               +----------+
 ```
 
 ## `tstat-logic`
