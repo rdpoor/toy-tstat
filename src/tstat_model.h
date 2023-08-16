@@ -24,9 +24,9 @@
  * SOFTWARE.
  */
 
- /**
-  * @brief tstat_model embodies the internal state of a simple thermostat.
-  */
+/**
+ * @brief tstat_model embodies the internal state of a simple thermostat.
+ */
 
 #ifndef _TSTAT_MODEL_H_
 #define _TSTAT_MODEL_H_
@@ -67,32 +67,17 @@ typedef struct {
 // *****************************************************************************
 // Public declarations
 
-/**
- * @brief Parse a JSON string and update fields of the tstat_model.
- *
- * JSON is a C-style null terminated string  It contains a JSON object
- * with zero or more fields of the form:
- *
- *   {'ambient':<number>, 'relay_y':<bool>, ...}
- *
- * The fields of tstat_model are updated from the values read in the JSON string.
- * NOTE: unrecognized fields are silently ignored.
- *
- * @return tstat_model if the JSON was valid, or NULL otherwise.
- */
-tstat_model_t *tstat_model_load_json(tstat_model_t *tstat_model, const char *json);
-
-const char *tstat_model_dump_json(tstat_model_t *tstat_model, char *buf, size_t buflen);
-
 temperature_t tstat_model_get_ambient(tstat_model_t *tstat_model);
 
 temperature_t tstat_model_get_cool_setpoint(tstat_model_t *tstat_model);
 
-void tstat_model_set_cool_setpoint(tstat_model_t *tstat_model, temperature_t cool_setpoint);
+void tstat_model_set_cool_setpoint(tstat_model_t *tstat_model,
+                                   temperature_t cool_setpoint);
 
 temperature_t tstat_model_get_heat_setpoint(tstat_model_t *tstat_model);
 
-void tstat_model_set_heat_setpoint(tstat_model_t *tstat_model, temperature_t heat_setpoint);
+void tstat_model_set_heat_setpoint(tstat_model_t *tstat_model,
+                                   temperature_t heat_setpoint);
 
 bool tstat_model_get_relay_y(tstat_model_t *tstat_model);
 
@@ -104,7 +89,8 @@ void tstat_model_set_relay_w(tstat_model_t *tstat_model, bool energized);
 
 system_mode_t tstat_model_get_system_mode(tstat_model_t *tstat_model);
 
-void tstat_model_set_system_mode(tstat_model_t *tstat_model, system_mode_t system_mode);
+void tstat_model_set_system_mode(tstat_model_t *tstat_model,
+                                 system_mode_t system_mode);
 
 // *****************************************************************************
 // End of file

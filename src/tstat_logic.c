@@ -33,6 +33,7 @@
 #include "model.h"
 #include <stdbool.h>
 #include <stdint.h>
+#include <string.h>
 
 // *****************************************************************************
 // Private types and definitions
@@ -46,24 +47,29 @@
 // *****************************************************************************
 // Public code
 
-void tstat_logic_update_model(model_t *model) {
+tstat_model_t *tstat_logic_update_model(tstat_model_t *model_in,
+                                        tstat_model_t *model_out) {
+    memcpy(model_out, model_in, sizeof(tstat_model_t));
+
     switch (model_get_system_mode(model)) {
     case SYSTEM_MODE_OFF: {
-        model_set_relay_y(model, false);
-        model_set_relay_w(model, false);
+        model_set_relay_y(model_out, false);
+        model_set_relay_w(model_out, false);
     } break;
     case SYSTEM_MODE_COOL: {
-        model_set_relay_y(
-            model, (model_get_cool_setpoint(model) < model_get_ambient(model)));
-        model_set_relay_w(model, false);
+        model_set_relay_y(model_out, (model_get_cool_setpoint(model_in) <
+                                      model_get_ambient(model_in)));
+        model_set_relay_w(model_out, false);
     } break;
     case SYSTEM_MODE_HEAT: {
-        model_set_relay_y(model, false);
-        model_set_relay_w(
-            model, (model_get_heat_setpoint(model) > model_get_ambient(model)));
+        model_set_relay_y(model_out, false);
+        model_set_relay_w(model_out, (model_get_heat_setpoint(model_in) >
+                                      model_get_ambient(model_in)));
     } break;
 
     } // switch
+
+    return model_out;
 }
 
 // *****************************************************************************

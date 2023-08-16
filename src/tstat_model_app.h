@@ -1,6 +1,5 @@
-
 /**
- * @file logic.h
+ * @file tstat_model_app.h
  *
  * MIT License
  *
@@ -26,16 +25,15 @@
  */
 
  /**
-  * @brief Perform thermostat logic functions
+  * @brief Main code for running the tstat_model.
   */
 
-#ifndef _TSTAT_LOGIC_H_
-#define _TSTAT_LOGIC_H_
+#ifndef _TSTAT_MODEL_APP_H_
+#define _TSTAT_MODEL_APP_H_
 
 // *****************************************************************************
 // Includes
 
-#include "tstat_model.h"
 #include <stdint.h>
 
 // *****************************************************************************
@@ -52,11 +50,14 @@ extern "C" {
 // Public declarations
 
 /**
- * Brief Update model_out according to the state in model_in.   Model in remains
- * unaltered.  Returns model_out.
+ * @brief One-time initialization for the tstat_model_app
  */
-tstat_model_t tstat_logic_update_model(tstat_model_t *model_in,
-                                       tstat_model_t *model_out);
+void tstat_model_app_init(void);
+
+/**
+ * @brief Run the tstat_model_app tasks
+ */
+void tstat_model_app_tasks(void);
 
 // *****************************************************************************
 // End of file
@@ -65,4 +66,4 @@ tstat_model_t tstat_logic_update_model(tstat_model_t *model_in,
 }
 #endif
 
-#endif /* #ifndef _TSTAT_LOGIC_H_ */
+#endif /* #ifndef _TSTAT_MODEL_APP_H_ */

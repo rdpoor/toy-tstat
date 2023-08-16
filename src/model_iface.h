@@ -70,6 +70,23 @@ bool model_iface_push(model_t *model);
  */
 bool model_iface_had_error(void);
 
+/**
+ * @brief Parse a JSON string and update fields of the tstat_model.
+ *
+ * JSON is a C-style null terminated string  It contains a JSON object
+ * with zero or more fields of the form:
+ *
+ *   {'ambient':<number>, 'relay_y':<bool>, ...}
+ *
+ * The fields of tstat_model are updated from the values read in the JSON string.
+ * NOTE: unrecognized fields are silently ignored.
+ *
+ * @return tstat_model if the JSON was valid, or NULL otherwise.
+ */
+tstat_model_t *tstat_model_load_json(tstat_model_t *tstat_model, const char *json);
+
+const char *tstat_model_dump_json(tstat_model_t *tstat_model, char *buf, size_t buflen);
+
 // *****************************************************************************
 // End of file
 
